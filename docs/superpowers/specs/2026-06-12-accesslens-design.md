@@ -157,16 +157,28 @@ the pipeline with a user-readable explanation.
 
 ## Timeline (~2.5 days)
 
-- **June 12 (tonight):** Krist: register + Azure free trial. Build: repo scaffold,
-  Pydantic contracts, scanner + fixtures, guardrails skeleton, knowledge doc curation.
-- **June 13:** Azure: Foundry project, model deployment, blob upload, knowledge
-  source/base, agent wiring (function tool + IQ via MCP). UI + SSE log. Mock-mode
-  recordings. Tests green.
+Azure access is deferred (Krist not yet comfortable signing up). All Azure-free work
+is front-loaded; Azure-dependent work is isolated behind a single gate.
+
+- **June 12 (tonight, Azure-free):** Repo scaffold, Pydantic contracts, scanner +
+  fixtures, guardrails pipeline, UI + SSE reasoning log, mock mode end-to-end,
+  knowledge doc curation (local), tests green. Krist: chase registration
+  activation email (check spam).
+- **June 13 (Azure gate — decision needed by midday):** Krist provisions Azure
+  (free trial, or Azure for Students: $100 credit, no credit card, requires student
+  verification). Then ~3–4 hours: Foundry project, model deployment, blob upload,
+  knowledge source/base, agent wiring (function tool + IQ via MCP), record real
+  traces as mock fixtures, capture live screenshots.
 - **June 14:** Polish, README + diagram, record/edit/upload demo video, submit by
   early evening PT (hours of buffer before 11:59 PM PT).
 
 ## Risks & mitigations
 
+- **No Azure access yet (top risk)** — IQ integration is mandatory for eligibility
+  and the Reasoning track requires Microsoft Foundry; there is no path to a valid
+  submission without a few hours of real Azure access before June 14. Mitigation:
+  all Azure work isolated to one ~3–4 hour block on June 13; decision deadline
+  June 13 midday; Azure for Students as the no-credit-card option.
 - **Azure free-trial quota for model deployments** → gpt-4o-mini Global Standard;
   region fallback; worst case the whole demo ships in mock mode with recorded live
   traces (still shows real Foundry integration in video).
