@@ -1,0 +1,22 @@
+{
+  "_default": "moderate",
+  "image-alt": "quick",
+  "color-contrast": "quick",
+  "html-has-lang": "quick",
+  "html-lang-valid": "quick",
+  "document-title": "quick",
+  "button-name": "quick",
+  "link-name": "quick",
+  "label": "quick",
+  "meta-viewport": "quick",
+  "region": "moderate",
+  "landmark-one-main": "moderate",
+  "page-has-heading-one": "moderate",
+  "heading-order": "moderate",
+  "aria-required-attr": "moderate",
+  "aria-roles": "moderate",
+  "frame-title": "quick",
+  "tabindex": "moderate",
+  "scrollable-region-focusable": "involved",
+  "nested-interactive": "involved"
+}
