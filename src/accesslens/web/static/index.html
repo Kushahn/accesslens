@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; object-src 'none'; form-action 'self'">
 <title>AccessLens — cited accessibility remediation plans</title>
 <style>
   :root {
@@ -106,6 +108,16 @@
   const reportSection = document.getElementById("report-section");
   let source = null;
 
+  // Only allow http(s) citation links. Agent/retrieval output must never
+  // become a javascript: or data: navigation sink (defense-in-depth XSS guard).
+  function safeHttpUrl(raw) {
+    try {
+      const u = new URL(raw, location.origin);
+      if (u.protocol === "http:" || u.protocol === "https:") return u.href;
+    } catch (_) {}
+    return "#";
+  }
+
   function addLog(text, className) {
     const li = document.createElement("li");
     li.textContent = text;
@@ -137,9 +149,9 @@
         cite.append("Sources: ");
         step.citations.forEach((c, i) => {
           const a = document.createElement("a");
-          a.href = c.url || "#";
+          a.href = safeHttpUrl(c.url);
           a.textContent = c.section;
-          a.rel = "noopener";
+          a.rel = "noopener noreferrer";
           a.target = "_blank";
           cite.appendChild(a);
           if (i < step.citations.length - 1) cite.append("; ");
