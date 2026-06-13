@@ -1,3 +1,190 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>AccessLens</title></head>
-<body><h1>AccessLens</h1></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AccessLens — cited accessibility remediation plans</title>
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --accent: #0b5394;
+    --surface: #f5f7fa;
+    --ok: #1e6b3a;
+    --warn: #8a5a00;
+    --bad: #a32020;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink); background: #ffffff;
+    margin: 0; line-height: 1.55;
+  }
+  .skip-link {
+    position: absolute; left: -999px; top: 0;
+    background: var(--accent); color: #fff; padding: .6rem 1rem; z-index: 10;
+  }
+  .skip-link:focus { left: 0; }
+  header, main, footer { max-width: 60rem; margin: 0 auto; padding: 1rem; }
+  header h1 { margin-bottom: .2rem; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  form { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; margin: 1rem 0; }
+  label { display: block; font-weight: 600; }
+  input[type="url"] {
+    font-size: 1rem; padding: .55rem; border: 2px solid var(--ink);
+    border-radius: 4px; min-width: min(28rem, 90vw);
+  }
+  button {
+    font-size: 1rem; padding: .6rem 1.2rem; border: 2px solid var(--accent);
+    background: var(--accent); color: #fff; border-radius: 4px; cursor: pointer;
+  }
+  button:disabled { background: #5b5b6e; border-color: #5b5b6e; }
+  section { margin-top: 1.5rem; }
+  #log {
+    list-style: none; padding: 1rem; margin: 0;
+    background: var(--surface); border-radius: 6px;
+    font-family: ui-monospace, Consolas, monospace; font-size: .92rem;
+  }
+  #log li { padding: .15rem 0; }
+  .stage { font-weight: 700; }
+  .guardrail-pass { color: var(--ok); }
+  .guardrail-warn { color: var(--warn); }
+  .error { color: var(--bad); font-weight: 700; }
+  details { border: 1px solid #c9d1dc; border-radius: 6px; padding: .6rem .9rem; margin: .5rem 0; }
+  summary { font-weight: 700; cursor: pointer; }
+  .impact { font-variant: small-caps; letter-spacing: .03em; }
+  .impact-critical { color: var(--bad); }
+  .impact-serious { color: var(--warn); }
+  code, pre {
+    background: var(--surface); border-radius: 4px;
+    padding: .1rem .35rem; font-size: .92em; overflow-x: auto;
+  }
+  pre { padding: .6rem; }
+  @media (prefers-reduced-motion: no-preference) {
+    .running::after { content: " …"; animation: pulse 1.2s infinite; }
+    @keyframes pulse { 50% { opacity: .35; } }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header>
+  <h1>AccessLens</h1>
+  <p>Scan a page, watch the agent reason, get a remediation plan where
+     <strong>every recommendation carries a citation</strong>.</p>
+</header>
+<main id="main">
+  <form id="scan-form">
+    <div>
+      <label for="url">Page URL to scan</label>
+      <input id="url" name="url" type="url" required
+             placeholder="https://example.org"
+             value="https://demo.accesslens.example/broken-page">
+    </div>
+    <button id="go" type="submit">Scan page</button>
+  </form>
+
+  <section aria-labelledby="log-heading">
+    <h2 id="log-heading">Agent reasoning log</h2>
+    <ol id="log" aria-live="polite" aria-relevant="additions"></ol>
+  </section>
+
+  <section aria-labelledby="report-heading" hidden id="report-section">
+    <h2 id="report-heading">Remediation plan</h2>
+    <p id="report-summary"></p>
+    <div id="report-steps"></div>
+  </section>
+</main>
+<footer>
+  <p>Powered by Microsoft Foundry + Foundry IQ · axe-core (MPL-2.0, Deque Systems) ·
+     Built for Agents League 2026.</p>
+</footer>
+<script>
+  const form = document.getElementById("scan-form");
+  const log = document.getElementById("log");
+  const go = document.getElementById("go");
+  const reportSection = document.getElementById("report-section");
+  let source = null;
+
+  function addLog(text, className) {
+    const li = document.createElement("li");
+    li.textContent = text;
+    if (className) li.className = className;
+    log.appendChild(li);
+  }
+
+  function renderPlan(plan) {
+    document.getElementById("report-summary").textContent = plan.summary;
+    const container = document.getElementById("report-steps");
+    container.innerHTML = "";
+    for (const step of plan.steps) {
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = step.title + (step.insufficient_evidence ? " (manual review)" : "");
+      details.appendChild(summary);
+      const rec = document.createElement("p");
+      rec.textContent = step.recommendation;
+      details.appendChild(rec);
+      if (step.code_suggestion) {
+        const pre = document.createElement("pre");
+        const code = document.createElement("code");
+        code.textContent = step.code_suggestion;
+        pre.appendChild(code);
+        details.appendChild(pre);
+      }
+      if (step.citations.length) {
+        const cite = document.createElement("p");
+        cite.append("Sources: ");
+        step.citations.forEach((c, i) => {
+          const a = document.createElement("a");
+          a.href = c.url || "#";
+          a.textContent = c.section;
+          a.rel = "noopener";
+          a.target = "_blank";
+          cite.appendChild(a);
+          if (i < step.citations.length - 1) cite.append("; ");
+        });
+        details.appendChild(cite);
+      }
+      container.appendChild(details);
+    }
+    reportSection.hidden = false;
+    reportSection.setAttribute("tabindex", "-1");
+    reportSection.focus();
+  }
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (source) source.close();
+    log.innerHTML = "";
+    reportSection.hidden = true;
+    go.disabled = true;
+    go.classList.add("running");
+    const url = document.getElementById("url").value;
+    source = new EventSource("/api/scan?url=" + encodeURIComponent(url));
+    source.onmessage = (message) => {
+      const ev = JSON.parse(message.data);
+      if (ev.type === "guardrail") {
+        const cls = ev.payload.passed ? "guardrail-pass" : "guardrail-warn";
+        addLog("guardrail " + ev.message, cls);
+      } else if (ev.type === "error") {
+        addLog("ERROR: " + ev.message, "error");
+        finish();
+      } else if (ev.type === "done") {
+        addLog("[" + ev.stage + "] " + ev.message, "stage");
+        renderPlan(ev.payload.plan);
+        finish();
+      } else {
+        addLog("[" + ev.stage + "] " + ev.message, ev.type === "stage_start" ? "stage" : "");
+      }
+    };
+    source.onerror = () => finish();
+    function finish() {
+      go.disabled = false;
+      go.classList.remove("running");
+      if (source) source.close();
+    }
+  });
+</script>
+</body>
+</html>
