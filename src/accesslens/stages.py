@@ -1,8 +1,8 @@
 """The three reasoning stages after scanning.
 
 Every stage consumes and produces a typed contract. The retriever is
-injected, so the deterministic local tier and the Foundry IQ live tier
-are interchangeable without stages knowing which one served them.
+injected, so the deterministic local tier and any alternate tier are
+interchangeable without stages knowing which one served them.
 """
 
 from __future__ import annotations

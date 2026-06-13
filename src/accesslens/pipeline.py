@@ -32,13 +32,11 @@ def _guardrail_events(stage: str, results: list[RuleResult]) -> list[PipelineEve
     ]
 
 
-def _get_retriever(settings: Settings) -> Retriever:
-    if settings.mock:
-        return LocalRetriever()
-    # Phase B: replace with FoundryRetriever (Foundry IQ knowledge base).
-    from accesslens.foundry import FoundryRetriever
-
-    return FoundryRetriever(settings)
+def _get_retriever() -> Retriever:
+    # The bundled WCAG 2.2 knowledge base grounds every finding. Alternate
+    # tiers (a hosted LLM, a vector store) can plug in here by implementing
+    # the Retriever protocol — no stage or pipeline change required.
+    return LocalRetriever()
 
 
 async def _scan(url: str, settings: Settings) -> ScanReport:
@@ -51,7 +49,7 @@ async def _scan(url: str, settings: Settings) -> ScanReport:
 
 async def run_pipeline(url: str, settings: Settings) -> AsyncIterator[PipelineEvent]:
     guardrails = GuardrailsPipeline(allow_local=settings.allow_local)
-    retriever = _get_retriever(settings)
+    retriever = _get_retriever()
     try:
         # Stage 1: Scanner
         yield PipelineEvent(
@@ -84,12 +82,7 @@ async def run_pipeline(url: str, settings: Settings) -> AsyncIterator[PipelineEv
         yield PipelineEvent(
             stage="standards_mapper",
             type=EventType.RETRIEVAL,
-            message="Retrieving criteria from "
-            + (
-                "local WCAG 2.2 knowledge"
-                if settings.mock
-                else "Foundry IQ knowledge base"
-            ),
+            message="Retrieving criteria from the WCAG 2.2 knowledge base",
         )
         mapped = StandardsMapper(retriever).run(report)
         mapped, results = guardrails.run("post_map", mapped)

@@ -1,7 +1,8 @@
 """Local standards knowledge: the deterministic retrieval tier.
 
-The Foundry IQ live tier (Phase B) implements the same ``Retriever``
-protocol, so stages never know which tier served them.
+This is the default knowledge base. Any alternate tier (a hosted LLM, a
+vector store) implements the same ``Retriever`` protocol, so the stages
+never know which tier served them.
 """
 
 from __future__ import annotations
@@ -41,7 +42,7 @@ def _load_efforts() -> dict[str, str]:
 
 
 class Retriever(Protocol):
-    """Interface shared by the local tier and the Foundry IQ tier."""
+    """Interface shared by the local tier and any alternate tier."""
 
     def lookup(self, wcag_tags: list[str]) -> list[CitationRef]: ...
 

@@ -4,7 +4,7 @@ from accesslens.pipeline import run_pipeline
 
 
 def mock_settings(**overrides) -> Settings:
-    defaults = dict(mock=True, allow_local=False, foundry_endpoint="", foundry_model="")
+    defaults = dict(mock=True, allow_local=False)
     defaults.update(overrides)
     return Settings(**defaults)
 

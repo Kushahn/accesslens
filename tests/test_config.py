@@ -1,11 +1,13 @@
 from accesslens.config import Settings
 
 
-def test_defaults_are_safe(monkeypatch):
+def test_defaults_to_live_scanning(monkeypatch):
     monkeypatch.delenv("ACCESSLENS_MOCK", raising=False)
     monkeypatch.delenv("ACCESSLENS_ALLOW_LOCAL", raising=False)
     settings = Settings.from_env()
-    assert settings.mock is True
+    # The product scans real URLs by default; mock is opt-in.
+    assert settings.mock is False
+    # Private/local hosts stay blocked unless explicitly allowed (SSRF guard).
     assert settings.allow_local is False
 
 
