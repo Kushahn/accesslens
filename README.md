@@ -51,6 +51,28 @@ ACCESSLENS_MOCK=1 uv run uvicorn accesslens.web.app:app
 In this mode the pipeline loads a recorded scan of a deliberately broken page and
 runs the full reasoning chain offline.
 
+## Command line
+
+The same pipeline is available as a CLI — useful for scripting, CI, or generating
+a report to hand to a developer:
+
+```bash
+# scan a URL and stream the reasoning log to your terminal
+uv run accesslens scan https://example.com
+
+# save the plan as JSON and a standalone, shareable HTML report
+uv run accesslens scan https://example.com --json plan.json --html report.html
+
+# offline demo, quiet (prints just the summary line)
+uv run accesslens scan https://example.com --mock --quiet
+```
+
+`--json` writes the machine-readable plan; `--html` writes a self-contained,
+accessible report you can open in any browser or email to someone — no server
+needed. The CLI exits non-zero if a guardrail blocks the scan (e.g. a non-http
+URL), so it composes cleanly in scripts. Run `uv run accesslens scan --help` for
+all flags.
+
 ## How it works
 
 A four-stage typed pipeline, with a guardrail at every boundary:
@@ -89,6 +111,8 @@ src/accesslens/
   stages.py        StandardsMapper, ImpactAssessor, RemediationPlanner
   guardrails.py    10-rule guardrails pipeline
   pipeline.py      orchestrator: runs the stages, streams events
+  report.py        export a plan as JSON or standalone HTML
+  cli.py           `accesslens scan` command-line interface
   config.py        runtime settings
   web/app.py       FastAPI app + Server-Sent Events endpoint
   web/static/      accessibility-first single-page UI
