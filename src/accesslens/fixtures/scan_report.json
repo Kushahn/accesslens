@@ -1,0 +1,169 @@
+{
+  "url": "https://demo.accesslens.example/broken-page",
+  "page_title": "",
+  "scanned_at": "2026-06-13T07:22:32.007020Z",
+  "duration_ms": 3197,
+  "violations": [
+    {
+      "rule_id": "button-name",
+      "impact": "critical",
+      "description": "Ensure buttons have discernible text",
+      "help_url": "https://dequeuniversity.com/rules/axe/4.10/button-name?application=axeAPI",
+      "wcag_tags": [
+        "wcag2a",
+        "wcag412"
+      ],
+      "nodes": [
+        {
+          "target": "button",
+          "html": "<button></button>"
+        }
+      ]
+    },
+    {
+      "rule_id": "color-contrast",
+      "impact": "serious",
+      "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+      "help_url": "https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI",
+      "wcag_tags": [
+        "wcag2aa",
+        "wcag143"
+      ],
+      "nodes": [
+        {
+          "target": "p",
+          "html": "<p class=\"lowcontrast\">Hard to read text with poor contrast.</p>"
+        }
+      ]
+    },
+    {
+      "rule_id": "document-title",
+      "impact": "serious",
+      "description": "Ensure each HTML document contains a non-empty <title> element",
+      "help_url": "https://dequeuniversity.com/rules/axe/4.10/document-title?application=axeAPI",
+      "wcag_tags": [
+        "wcag2a",
+        "wcag242"
+      ],
+      "nodes": [
+        {
+          "target": "html",
+          "html": "<html>"
+        }
+      ]
+    },
+    {
+      "rule_id": "html-has-lang",
+      "impact": "serious",
+      "description": "Ensure every HTML document has a lang attribute",
+      "help_url": "https://dequeuniversity.com/rules/axe/4.10/html-has-lang?application=axeAPI",
+      "wcag_tags": [
+        "wcag2a",
+        "wcag311"
+      ],
+      "nodes": [
+        {
+          "target": "html",
+          "html": "<html>"
+        }
+      ]
+    },
+    {
+      "rule_id": "image-alt",
+      "impact": "critical",
+      "description": "Ensure <img> elements have alternative text or a role of none or presentation",
+      "help_url": "https://dequeuniversity.com/rules/axe/4.10/image-alt?application=axeAPI",
+      "wcag_tags": [
+        "wcag2a",
+        "wcag111"
+      ],
+      "nodes": [
+        {
+          "target": "img",
+          "html": "<img src=\"logo.png\">"
+        }
+      ]
+    },
+    {
+      "rule_id": "label",
+      "impact": "critical",
+      "description": "Ensure every form element has a label",
+      "help_url": "https://dequeuniversity.com/rules/axe/4.10/label?application=axeAPI",
+      "wcag_tags": [
+        "wcag2a",
+        "wcag412"
+      ],
+      "nodes": [
+        {
+          "target": "input",
+          "html": "<input type=\"text\">"
+        }
+      ]
+    },
+    {
+      "rule_id": "landmark-one-main",
+      "impact": "moderate",
+      "description": "Ensure the document has a main landmark",
+      "help_url": "https://dequeuniversity.com/rules/axe/4.10/landmark-one-main?application=axeAPI",
+      "wcag_tags": [],
+      "nodes": [
+        {
+          "target": "html",
+          "html": "<html>"
+        }
+      ]
+    },
+    {
+      "rule_id": "link-name",
+      "impact": "serious",
+      "description": "Ensure links have discernible text",
+      "help_url": "https://dequeuniversity.com/rules/axe/4.10/link-name?application=axeAPI",
+      "wcag_tags": [
+        "wcag2a",
+        "wcag244",
+        "wcag412"
+      ],
+      "nodes": [
+        {
+          "target": "a",
+          "html": "<a href=\"page2.html\"></a>"
+        }
+      ]
+    },
+    {
+      "rule_id": "page-has-heading-one",
+      "impact": "moderate",
+      "description": "Ensure that the page, or at least one of its frames contains a level-one heading",
+      "help_url": "https://dequeuniversity.com/rules/axe/4.10/page-has-heading-one?application=axeAPI",
+      "wcag_tags": [],
+      "nodes": [
+        {
+          "target": "html",
+          "html": "<html>"
+        }
+      ]
+    },
+    {
+      "rule_id": "region",
+      "impact": "moderate",
+      "description": "Ensure all page content is contained by landmarks",
+      "help_url": "https://dequeuniversity.com/rules/axe/4.10/region?application=axeAPI",
+      "wcag_tags": [],
+      "nodes": [
+        {
+          "target": "img",
+          "html": "<img src=\"logo.png\">"
+        },
+        {
+          "target": "p",
+          "html": "<p class=\"lowcontrast\">Hard to read text with poor contrast.</p>"
+        },
+        {
+          "target": "input",
+          "html": "<input type=\"text\">"
+        }
+      ]
+    }
+  ],
+  "error": null
+}
