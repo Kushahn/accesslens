@@ -55,9 +55,10 @@ async def scan_url(
             browser = await pw.chromium.launch(headless=True)
             try:
                 page = await browser.new_page()
-                await page.goto(
-                    url, timeout=timeout_s * 1000, wait_until="domcontentloaded"
-                )
+                # Wait for full load (not just DOM): accessibility checks like
+                # color-contrast need computed styles, so axe must run against
+                # the fully rendered page, not a half-laid-out one.
+                await page.goto(url, timeout=timeout_s * 1000, wait_until="load")
                 await page.add_script_tag(path=str(AXE_PATH))
                 results = await page.evaluate("async () => await axe.run()")
                 title = await page.title()
