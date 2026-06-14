@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import ipaddress
 import re
+import socket
 import urllib.parse
 from enum import Enum
 from typing import Any, Callable
@@ -45,13 +46,60 @@ class GuardrailBlocked(Exception):
 Rule = Callable[[Any], tuple[Any, RuleResult]]
 
 
+IPAddress = ipaddress.IPv4Address | ipaddress.IPv6Address
+
+
+def _ip_is_blocked(ip: IPAddress) -> bool:
+    """True for any non-public address an SSRF attacker might target."""
+    # ::ffff:a.b.c.d routes to the embedded IPv4 but only got flagged by the
+    # IPv6 ruleset from CPython 3.12.4 on (CVE-2024-4032); unwrap it ourselves
+    # so the guard holds on every interpreter satisfying requires-python.
+    mapped = getattr(ip, "ipv4_mapped", None)
+    if mapped is not None:
+        return _ip_is_blocked(mapped)
+    return (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local  # 169.254/16 (incl. cloud metadata), fe80::/10
+        or ip.is_reserved
+        or ip.is_multicast
+        or ip.is_unspecified
+    )
+
+
+def _candidate_ips(host: str) -> list[IPAddress]:
+    """Every IP the host might reach: a literal address, browser-accepted
+    numeric encodings (decimal/hex/octal/short, e.g. ``2130706433``,
+    ``0x7f000001``, ``127.1``), and DNS A/AAAA records. Resolving here is what
+    catches a public hostname deliberately pointed at a private IP.
+    """
+    try:  # already a literal address, e.g. 127.0.0.1 or ::1
+        return [ipaddress.ip_address(host)]
+    except ValueError:
+        pass
+
+    try:  # browser-accepted numeric forms: 2130706433, 0x7f000001, 127.1
+        return [ipaddress.IPv4Address(socket.inet_aton(host))]
+    except (OSError, ValueError):
+        pass
+
+    ips: list[IPAddress] = []  # a real hostname: check every DNS answer
+    try:
+        for info in socket.getaddrinfo(host, None):
+            addr = info[4][0].split("%")[0]  # drop any IPv6 scope id
+            try:
+                ips.append(ipaddress.ip_address(addr))
+            except ValueError:
+                pass
+    except OSError:
+        pass
+    return ips
+
+
 def _is_private_host(host: str) -> bool:
     if host.lower() in PRIVATE_HOSTS:
         return True
-    try:
-        return ipaddress.ip_address(host).is_private
-    except ValueError:
-        return False
+    return any(_ip_is_blocked(ip) for ip in _candidate_ips(host))
 
 
 def url_scheme_rule(url: str) -> tuple[str, RuleResult]:
@@ -70,7 +118,7 @@ def url_scheme_rule(url: str) -> tuple[str, RuleResult]:
 def make_private_host_rule(allow_local: bool) -> Rule:
     def private_host_rule(url: str) -> tuple[str, RuleResult]:
         host = urllib.parse.urlparse(url).hostname or ""
-        private = _is_private_host(host)
+        private = False if allow_local else _is_private_host(host)
         ok = allow_local or not private
         return url, RuleResult(
             rule="private_host",

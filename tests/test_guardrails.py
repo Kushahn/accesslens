@@ -1,3 +1,4 @@
+import socket
 from datetime import datetime, timezone
 
 import pytest
@@ -40,6 +41,47 @@ def test_pre_scan_allows_localhost_when_configured():
     pipeline = GuardrailsPipeline(allow_local=True)
     url, results = pipeline.run("pre_scan", "http://localhost:8000")
     assert url == "http://localhost:8000"
+    assert all(r.passed for r in results)
+
+
+def test_pre_scan_blocks_alternate_ip_encodings():
+    # Browsers resolve these numeric forms to 127.0.0.1; the guard must too.
+    pipeline = GuardrailsPipeline(allow_local=False)
+    for url in ("http://2130706433/", "http://0x7f000001/", "http://127.1/"):
+        with pytest.raises(GuardrailBlocked):
+            pipeline.run("pre_scan", url)
+
+
+def test_pre_scan_blocks_ipv4_mapped_ipv6_loopback():
+    # ::ffff:127.0.0.1 routes to 127.0.0.1; pre-3.12.4 ipaddress missed this.
+    pipeline = GuardrailsPipeline(allow_local=False)
+    for url in (
+        "http://[::ffff:127.0.0.1]/",
+        "http://[::ffff:169.254.169.254]/",  # cloud metadata via mapped IPv6
+    ):
+        with pytest.raises(GuardrailBlocked):
+            pipeline.run("pre_scan", url)
+
+
+def test_pre_scan_blocks_host_resolving_to_private_ip(monkeypatch):
+    # A public-looking hostname pointed at loopback (DNS-based SSRF) must block.
+    def fake_getaddrinfo(host, *args, **kwargs):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 0))]
+
+    monkeypatch.setattr(socket, "getaddrinfo", fake_getaddrinfo)
+    pipeline = GuardrailsPipeline(allow_local=False)
+    with pytest.raises(GuardrailBlocked):
+        pipeline.run("pre_scan", "http://public-name.example/")
+
+
+def test_pre_scan_allows_host_resolving_to_public_ip(monkeypatch):
+    # A name resolving to a public IP must NOT be over-blocked.
+    def fake_getaddrinfo(host, *args, **kwargs):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 0))]
+
+    monkeypatch.setattr(socket, "getaddrinfo", fake_getaddrinfo)
+    pipeline = GuardrailsPipeline(allow_local=False)
+    url, results = pipeline.run("pre_scan", "http://public-name.example/")
     assert all(r.passed for r in results)
 
 
